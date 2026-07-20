@@ -1,12 +1,13 @@
 # Agent Runtime from Scratch
 
-这是配套教程持续迭代的代码项目。当前检查点只完成一件事：通过真实的 DeepSeek API 发出一次模型请求。
+这是配套教程持续迭代的代码项目。当前检查点通过统一的调用函数，分别请求 DeepSeek 与 OpenRouter 上的 Nemotron 模型。
 
 ## 环境要求
 
 - Node.js
 - npm
 - 你自己的 DeepSeek API Key
+- 你自己的 OpenRouter API Key
 
 ## 初始化
 
@@ -22,28 +23,29 @@ npm install
 DEEPSEEK_API_KEY=你的真实Key
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-v4-flash
+
+OPENROUTER_API_KEY=你的真实Key
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_MODEL=nvidia/nemotron-3-nano-30b-a3b:free
 ```
 
 `.env` 已经被 Git 忽略，不要把真实 Key 写入代码、提交记录或公开日志。
 
-## 发出第一次请求
+## 发出请求
 
 ```bash
 npm run dev
 ```
 
-程序会向 DeepSeek 发送“北京的天气通常有什么特点？”，并在终端打印完整的 Chat Completions 响应。这个问题不依赖实时数据，也不需要工具。模型输出存在随机性，具体措辞不属于本步骤的验收条件。
+程序会使用相同的问题依次请求 DeepSeek 和 OpenRouter，并分别打印完整的 Chat Completions 响应。本步骤显式关闭流式输出，只观察 Provider、ModelRef 与基础调用结构。
 
 ## 本地验证
 
-单元测试不会调用付费 API：
-
 ```bash
-npm test
 npm run typecheck
 npm run build
 ```
 
 ## 当前边界
 
-项目暂时没有 Runtime、Provider、Adapter、Catalog、工具循环或其他抽象。它们只会在后续需求出现、当前写法无法满足时再加入。
+项目目前只引入了 `ProviderConfig`、`ModelRef` 和一个手工维护的 Provider Map。还没有 Catalog、Adapter、Transform、工具循环或完整 Runtime。
