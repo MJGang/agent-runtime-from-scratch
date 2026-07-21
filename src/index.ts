@@ -22,6 +22,27 @@ function requireEnv(name: string): string {
   return value;
 }
 
+function parseModelRef(value: string): ModelRef {
+  const separatorIndex = value.indexOf(":");
+
+  if (separatorIndex === -1) {
+    throw new Error(
+      `模型标识格式错误：${value}，请使用 provider:model`
+    );
+  }
+
+  const provider_id = value.slice(0, separatorIndex);
+  const model_id = value.slice(separatorIndex + 1);
+
+  if (!provider_id || !model_id) {
+    throw new Error(
+      `模型标识格式错误：${value}，请使用 provider:model`
+    );
+  }
+
+  return { provider_id, model_id };
+}
+
 async function callModel(
   providers: ReadonlyMap<string, ProviderConfig>,
   model: ModelRef,
@@ -65,25 +86,20 @@ async function main() {
     ]
   ]);
 
-  const models: ModelRef[] = [
-    {
-      provider_id: "deepseek",
-      model_id: requireEnv("DEEPSEEK_MODEL")
-    },
-    {
-      provider_id: "openrouter",
-      model_id: requireEnv("OPENROUTER_MODEL")
-    }
-  ];
-
   const prompt = "北京的天气通常有什么特点？";
+  const selectedModel = process.argv[2];
 
-  for (const model of models) {
-    const response = await callModel(providers, model, prompt);
-
-    console.log(`\n=== ${model.provider_id} / ${model.model_id} ===`);
-    console.log(JSON.stringify(response, null, 2));
+  if (!selectedModel) {
+    throw new Error(
+      "请指定模型，例如：npm run dev -- deepseek:deepseek-v4-flash"
+    );
   }
+
+  const model = parseModelRef(selectedModel);
+  const response = await callModel(providers, model, prompt);
+
+  console.log(`\n=== ${model.provider_id} / ${model.model_id} ===`);
+  console.log(JSON.stringify(response, null, 2));
 }
 
 main().catch((error: unknown) => {
